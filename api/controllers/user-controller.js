@@ -43,6 +43,12 @@ const setError = (errorCode, res, next) => {
             res.json(next);
             break;
 
+        case 503:
+            var err = "Request couldn't be completed temporarily"
+            res.status(503);
+            res.json(next);
+            break;
+
     }
 }
 
@@ -65,64 +71,51 @@ export const getById  = async (req, res, next) => {
         const password = credentials[1]
 
         // Check if credentials match
-        const auth = await userService.authenticateUser(username, password);
-
-        if(auth) { //If matches then send details else send forbidden error
+        const authenticate = await userService.authenticateUser(username, password);
+        
+        if(authenticate) { //If matches then send details else send forbidden error
             const id = req.params.userId;
-            const validId = await userService.checkExistingUserById(id);
-
-            if(validId) {
-                const data = await userService.getById(id);
-                setSuccess(res, data);
+            const authorize = await userService.authorizeAndGetUser(id, username);
+            if(authorize) {
+                setSuccess(res, authorize);
             } else {
-                setError(400, res, next);
+                setError(403, res, next);
             }
             
         } else {
-            setError(403, res, next);
+            setError(401, res, next);
         }
 
     }
     
 }
 
-export const post  = async (req, res, next) => {
-        //If nothing passed in body
-        if(!Object.keys(req.body).length) {
-            // var err = new Error('No Content');
-            setError(204, res,next);
-        } else if(Object.keys(req.body).length != 4) { //If more or less data is passed
+
+export const post = async (req, res, next) => {
+    if(!Object.keys(req.body).length) {
+        setError(204, res,next);
+    } else if(Object.keys(req.body).length != 4) { //If more or less data is passed
+        setError(400, res,next);
+    } else {
+        const {first_name, last_name, password, username} = req.body; // Destruct data from req body
+        // if any of the fields are empty or null or field name is wrong
+        if(first_name == undefined || first_name == "" || last_name == undefined || last_name == "" || password == undefined || password == "" || username == undefined || username == "") {
             setError(400, res,next);
         } else {
-            const {first_name, last_name, password, username} = req.body; // Destruct data from req body
-            
-            // if any of the fields are empty or null or field name is wrong
-            if(first_name == undefined || first_name == "" || last_name == undefined || last_name == "" || password == undefined || password == "" || username == undefined || username == "") {
-                setError(400, res,next);
-            } else {
-                // Check if given username already exists
-                const count = await userService.checkExistingUser(username);
-                // If exists then throw error else save data
-                if(count > 0) {
-                    setError(400, res,next);
+            const regexp = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+            if(regexp.test(username)) {
+                const data = await userService.saveUser(req.body);
+                if(data) {
+                    res.status(201);
+                    res.json(data)
                 } else {
-                    // Username should be valid email address
-                    const regexp = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-                    if(regexp.test(username)) {
-                        const data = await userService.saveUser(first_name, last_name, password, username);
-                        if(data) {
-                            res.status(201);
-                            res.json({message: "User has been created successfully"})
-                        } else {
-                            setError(400, res, next);
-                        }
-                    } else {
-                        setError(400, res, next);
-                    }
+                    setError(400, res, next);
                 }
-
+            } else {
+                setError(400, res, next);
             }
         }
+    }
 }
 
 export const update = async (req, res, next) => {
@@ -143,22 +136,18 @@ export const update = async (req, res, next) => {
         const password = credentials[1]
 
         // Authenticate user to be able to update data
-        const auth = await userService.authenticateUser(username, password);
+        const authenticate = await userService.authenticateUser(username, password);
 
-        if(auth) {
-
+        if(authenticate) { //If matches then send details else send forbidden error
             const id = req.params.userId;
-            const userExists = await userService.checkExistingUserById(id);
-            
-            if (userExists) {
-
+            const authorize = await userService.authorizeAndGetUser(id, username);
+            if(authorize) {
                 if(!Object.keys(req.body).length) { //IF no data provided to update
                     setError(204, res,next);
                 } else if(Object.keys(req.body).length > 3) { //If more or less data is passed
                     setError(400, res,next);
                 } else {
-                    // If any other field is tried to update other than first_name, last_name, password
-                    // then throw error
+
                     let flag = true;
                     for(let key in req.body) {
                         if(key === 'first_name' || key==='last_name' || key==='password') {
@@ -171,24 +160,22 @@ export const update = async (req, res, next) => {
                     if(!flag) {
                         setError(400, res,next);
                     } else {
-                        const {first_name} = req.body;
-                        const {last_name} = req.body;
-                        const {password} = req.body;
-                        const data = await userService.update(id, first_name, last_name, password);
-                        
+                        const data = await userService.update(id, req.body);
                         if(data) {
-                            setSuccess(res, {message: "Updated Successfully"})
+                            setSuccess(res, data);
+                        } else {
+                            setError(503, res, next);
                         }
                     }
-                    
+
                 }
-                
             } else {
-                setError(404, res, next)
+                setError(403, res, next);
             }
             
         } else {
-            setError(403, res, next);
+            setError(401, res, next);
         }
+
     }
 }
