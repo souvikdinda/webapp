@@ -1,73 +1,56 @@
-import poolPromise from '../models/user-database.js';
 import bcrypt from 'bcrypt';
+import User from '../models/user-model.js'
 
 // Check if credentials match
 export const authenticateUser = async (username, password) => {
-    const [rows,fields] = await poolPromise.query("SELECT password FROM user WHERE `username` = ?", username);
-    if(rows.length > 0) {
-        const hashPassword = rows[0].password;
+    const auth = await User.findOne({where: {username}});
+    if(auth !== null) {
+        const hashPassword = auth.password;
         return bcrypt.compareSync(password, hashPassword);
     } else {
         return false
     }
 }
 
-// Get data for given id if nothing found then user doesnt exist
-export const getById = async (id) => {
-    const [rows,fields] = await poolPromise.query("SELECT first_name, last_name, username FROM USER WHERE `id` = ?", id);
-    const data = rows[0];
-    if(data == undefined) {
-        return {message: "User doesnt exist, confirm UserID!"}
-    } else return data;
-}
-
 // Check if user exists for given username
-export const checkExistingUser = async (username) => {
-    const [rows,fields] = await poolPromise.query("SELECT count(*) as count FROM user WHERE `username` = ?", username);
-    const {count} = rows[0];
-    return count;
+export const authorizeAndGetUser = async (id, username) => {
+    const response = await User.findOne({where: {username}});
+    if(response.id === (+id)) {
+        const data = {id: response.id, first_name: response.first_name, last_name: response.last_name, username: response.username, account_created: response.account_created, account_updated: response.account_updated}
+        return data;
+    } else {
+        return false;
+    }
 }
 
 // Insert data for user creation
-export const saveUser = async (first_name, last_name, password, username) => {
+export const saveUser = async (userData) => {
     // Hashing password
     try {
         // Bcrypt is used for hashing the password
         // Auto-generated salt
         // SaltRounds used 10
+        const {first_name, last_name, password, username} = userData;
         const hash = bcrypt.hashSync(password, 10);
-        const [rows,fields] = await poolPromise.query("INSERT INTO user (first_name, last_name, password, username) VALUES (?, ?, ?, ?);", [first_name, last_name, hash, username]);
-        const data = rows;
-        if(data) {
-            return true
-        }
+        const response = await User.create({first_name, last_name, password: hash, username});
+        const data = {id: response.id, first_name: response.first_name, last_name: response.last_name, username: response.username, account_created: response.account_created, account_updated: response.account_updated}
+        return data
     } catch(error) {
         console.log(error);
         return false
     }
 }
 
-// Check if user exists by id
-export const checkExistingUserById =  async (id) => {
-    const [rows,fields] = await poolPromise.query("SELECT count(*) as count FROM user WHERE `id` = ?", id);
-    const {count} = rows[0];
-    return count > 0;
-}
-
 // Update data for user
-export const update =  async (id, first_name, last_name, password) => {
-    if(first_name != undefined) {
-        await poolPromise.query("UPDATE user SET `first_name` = ? WHERE `id` = ?;", [first_name, id]);
+export const update =  async (id, data) => {
+    try {
+        const user = await User.findOne({where: {id}});
+        const response = await user.update(data);
+        const updatedUser = {id: response.id, first_name: response.first_name, last_name: response.last_name, username: response.username, account_created: response.account_created, account_updated: response.account_updated};
+        return updatedUser;
+    } catch(err) {
+        console.log(err);
+        return false;
     }
 
-    if(last_name != undefined) {
-        await poolPromise.query("UPDATE user SET `last_name` = ? WHERE `id` = ?;", [last_name, id]);
-    }
-
-    if(password != undefined) {
-        const hash = bcrypt.hashSync(password, 10);
-        await poolPromise.query("UPDATE user SET `password` = ? WHERE `id` = ?;", [hash, id]);
-    }
-
-    return true;
 }
