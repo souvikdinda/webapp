@@ -11,8 +11,9 @@ app.use(cors());
 
 routes.userData(app);
 routes.healthCheck(app);
+routes.productData(app);
 
-sequelize.sync({alter: true}).then((data) => {
+sequelize.sync({alter: false, force: false}).then((data) => {
     console.log("Tables updated on database")
 }).catch((err) => {
     console.log(err)
