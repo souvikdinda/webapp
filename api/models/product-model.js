@@ -34,14 +34,16 @@ const Product = sequelize.define('Product', {
 }, {
     timestamps: true,
     createdAt: 'date_added',
-    updatedAt: 'date_last_updated'
+    updatedAt: 'date_last_updated',
+    freezeTableName: true
 });
 
 User.hasMany(Product, {
     foreignKey: {
         name: 'owner_user_id'
     },
-    onDelete: 'CASCADE'
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE'
 })
 
 

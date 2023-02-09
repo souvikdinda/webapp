@@ -36,7 +36,6 @@ export const saveUser = async (userData) => {
         const data = {id: response.id, first_name: response.first_name, last_name: response.last_name, username: response.username, account_created: response.account_created, account_updated: response.account_updated}
         return data
     } catch(error) {
-        console.log(error);
         return false
     }
 }
