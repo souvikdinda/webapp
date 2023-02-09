@@ -1,8 +1,8 @@
 import e from 'cors';
 import Product from '../models/product-model.js';
 import User from '../models/user-model.js';
-import { update } from './user-service.js';
 
+// Save product in DB for given user
 export const saveProduct = async (username, data) => {
     try {
         const user = await User.findOne({where: {username}});
@@ -14,6 +14,7 @@ export const saveProduct = async (username, data) => {
 
 }
 
+// Get product
 export const getProduct = async (id) => {
     try {
         const product = await Product.findOne({where: {id}})
@@ -23,6 +24,7 @@ export const getProduct = async (id) => {
     }
 }
 
+// Check if product exists for requesting user and check if user is authorized update/delete
 export const authorizeToUpdate = async (username, productId) => {
     try {
         const user = await User.findOne({where: {username}});
@@ -37,6 +39,7 @@ export const authorizeToUpdate = async (username, productId) => {
     }
 }
 
+// Update details for given product id
 export const updateProduct = async (username, productId, data) => {
     try {
         const user = await User.findOne({where: {username}});
@@ -49,6 +52,8 @@ export const updateProduct = async (username, productId, data) => {
     }
 }
 
+
+// Delete product
 export const deleteProduct = async (username, productId) => {
     try {
         const user = await User.findOne({where: {username}});

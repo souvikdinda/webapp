@@ -53,7 +53,7 @@ const setError = (errorCode, res, next) => {
     }
 }
 
-
+// Product details can be fetched by anyone with valid product id
 export const getProduct = async (req, res, next) => {
 
     const productData = await productService.getProduct(req.params.productId);
@@ -64,6 +64,8 @@ export const getProduct = async (req, res, next) => {
     }
 }
 
+
+// Product can be created only by authenticated user
 export const createProduct = async (req, res, next) => {
 
     if(!req.get('Authorization')) { //If request header doesnt contain Authorization tag
@@ -92,7 +94,7 @@ export const createProduct = async (req, res, next) => {
                 setError(400, res,next);
             } else {
                 const {name, description, sku, manufacturer, quantity} = req.body;
-                
+                // Check if all fields are entered correctly
                 if(name === undefined || description === undefined || sku === undefined || manufacturer === undefined || quantity === undefined || name === "" || description === "" || sku === "" || manufacturer === "" || quantity === "" || !Number.isInteger(quantity) || quantity < 1) {
                     setError(400, res,next);
                 } else {
@@ -101,7 +103,8 @@ export const createProduct = async (req, res, next) => {
                     if(!data) {
                         setError(400, res, next);
                     } else {
-                        setSuccess(res, data);
+                        res.status(201);
+                        res.json(data)
                     }
 
                 }
@@ -114,6 +117,7 @@ export const createProduct = async (req, res, next) => {
     }
 }
 
+// Product details can be updated only by authenticated user
 export const putProduct = async (req, res, next) => {
     if(!req.get('Authorization')) { //If request header doesnt contain Authorization tag
         setError(401, res, next); // Request for sending request again with authorization tag
@@ -143,7 +147,7 @@ export const putProduct = async (req, res, next) => {
                     setError(400, res,next);
                 } else {
                     const {name, description, sku, manufacturer, quantity} = req.body;
-                    
+                    // Put request should have all the required fields
                     if(name === undefined || description === undefined || sku === undefined || manufacturer === undefined || quantity === undefined || name === "" || description === "" || sku === "" || manufacturer === "" || quantity === "" || !Number.isInteger(quantity) || quantity < 1) {
                         setError(400, res,next);
                     } else {
@@ -167,6 +171,8 @@ export const putProduct = async (req, res, next) => {
     }
 }
 
+
+// Patch can be used to update product details by authenticated user
 export const patchProduct = async (req, res, next) => {
     if(!req.get('Authorization')) { //If request header doesnt contain Authorization tag
         setError(401, res, next); // Request for sending request again with authorization tag

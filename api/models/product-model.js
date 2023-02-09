@@ -38,11 +38,11 @@ const Product = sequelize.define('Product', {
     freezeTableName: true
 });
 
-User.hasMany(Product, {
+User.hasMany(Product, { // User can add multiple products and owner_user_id is foreign key in product table
     foreignKey: {
         name: 'owner_user_id'
     },
-    onDelete: 'CASCADE',
+    onDelete: 'CASCADE', // Deleting or updating user should reflect in product table
     onUpdate: 'CASCADE'
 })
 

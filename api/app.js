@@ -19,10 +19,4 @@ sequelize.sync({alter: false, force: false}).then((data) => {
     console.log(err)
 })
 
-sequelize.sync({alter: true}).then((data) => {
-    console.log("Tables updated on database")
-}).catch((err) => {
-    console.log(err)
-})
-
 export default app;
