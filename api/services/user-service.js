@@ -43,6 +43,11 @@ export const saveUser = async (userData) => {
 // Update data for user
 export const update =  async (id, data) => {
     try {
+        if(data.password !== undefined || data.password !== "") {
+            const {password} = data;
+            const hash = bcrypt.hashSync(password, 10);
+            data.password = hash;
+        }
         const user = await User.findOne({where: {id}});
         const response = await user.update(data);
         const updatedUser = {id: response.id, first_name: response.first_name, last_name: response.last_name, username: response.username, account_created: response.account_created, account_updated: response.account_updated};
