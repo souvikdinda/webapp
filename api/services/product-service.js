@@ -6,8 +6,13 @@ import User from '../models/user-model.js';
 export const saveProduct = async (username, data) => {
     try {
         const user = await User.findOne({where: {username}});
-        const newProduct = await user.createProduct(data);
-        return newProduct;
+        const productExist = await Product.findOne({where: {sku: data.sku}});
+        if(productExist) {
+            return false
+        } else {
+            const newProduct = await user.createProduct(data);
+            return newProduct;
+        }
     } catch(error) {
         return false;
     }

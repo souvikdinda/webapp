@@ -55,13 +55,17 @@ const setError = (errorCode, res, next) => {
 
 // Product details can be fetched by anyone with valid product id
 export const getProduct = async (req, res, next) => {
-
+    
+    if(!Number.isInteger(parseInt(req.params.productId))) {
+        setError(400, res, next)
+    }
     const productData = await productService.getProduct(req.params.productId);
     if(productData) {
         setSuccess(res, productData)
     } else {
         setError(404, res, next);
-    }
+    }   
+    
 }
 
 
@@ -95,7 +99,7 @@ export const createProduct = async (req, res, next) => {
             } else {
                 const {name, description, sku, manufacturer, quantity} = req.body;
                 // Check if all fields are entered correctly
-                if(name === undefined || description === undefined || sku === undefined || manufacturer === undefined || quantity === undefined || name === "" || description === "" || sku === "" || manufacturer === "" || quantity === "" || !Number.isInteger(quantity) || quantity < 1) {
+                if(name === undefined || description === undefined || sku === undefined || manufacturer === undefined || quantity === undefined || name === "" || description === "" || sku === "" || manufacturer === "" || quantity === "" || !Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
                     setError(400, res,next);
                 } else {
                     const data = await productService.saveProduct(username, req.body);
@@ -119,6 +123,10 @@ export const createProduct = async (req, res, next) => {
 
 // Product details can be updated only by authenticated user
 export const putProduct = async (req, res, next) => {
+    if(!Number.isInteger(parseInt(req.params.productId))) {
+        setError(400, res, next)
+    }
+
     if(!req.get('Authorization')) { //If request header doesnt contain Authorization tag
         setError(401, res, next); // Request for sending request again with authorization tag
     } else {
@@ -148,7 +156,7 @@ export const putProduct = async (req, res, next) => {
                 } else {
                     const {name, description, sku, manufacturer, quantity} = req.body;
                     // Put request should have all the required fields
-                    if(name === undefined || description === undefined || sku === undefined || manufacturer === undefined || quantity === undefined || name === "" || description === "" || sku === "" || manufacturer === "" || quantity === "" || !Number.isInteger(quantity) || quantity < 1) {
+                    if(name === undefined || description === undefined || sku === undefined || manufacturer === undefined || quantity === undefined || name === "" || description === "" || sku === "" || manufacturer === "" || quantity === "" || !Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
                         setError(400, res,next);
                     } else {
                         const data = await productService.updateProduct(username, req.params.productId, req.body);
@@ -174,6 +182,10 @@ export const putProduct = async (req, res, next) => {
 
 // Patch can be used to update product details by authenticated user
 export const patchProduct = async (req, res, next) => {
+    if(!Number.isInteger(parseInt(req.params.productId))) {
+        setError(400, res, next)
+    }
+
     if(!req.get('Authorization')) { //If request header doesnt contain Authorization tag
         setError(401, res, next); // Request for sending request again with authorization tag
     } else {
@@ -207,7 +219,7 @@ export const patchProduct = async (req, res, next) => {
                         if(key === 'name' || key==='description' || key==='sku' || key === 'manufacturer' || key === 'quantity') {
                             if(key === 'quantity') {
                                 const quantity = req.body.quantity
-                                if(!Number.isInteger(quantity) || quantity < 1) {
+                                if(!Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
                                     setError(400, res, next)
                                     break
                                 }
@@ -240,6 +252,10 @@ export const patchProduct = async (req, res, next) => {
 }
 
 export const deleteProduct = async (req, res, next) => {
+    if(!Number.isInteger(parseInt(req.params.productId))) {
+        setError(400, res, next)
+    }
+
     if(!req.get('Authorization')) { //If request header doesnt contain Authorization tag
         setError(401, res, next); // Request for sending request again with authorization tag
     } else {

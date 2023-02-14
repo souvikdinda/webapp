@@ -31,10 +31,16 @@ export const saveUser = async (userData) => {
         // Auto-generated salt
         // SaltRounds used 10
         const {first_name, last_name, password, username} = userData;
-        const hash = bcrypt.hashSync(password, 10);
-        const response = await User.create({first_name, last_name, password: hash, username});
-        const data = {id: response.id, first_name: response.first_name, last_name: response.last_name, username: response.username, account_created: response.account_created, account_updated: response.account_updated}
-        return data
+
+        const userEsists = await User.findOne({where: {username}});
+        if(userEsists) {
+            return false
+        } else {
+            const hash = bcrypt.hashSync(password, 10);
+            const response = await User.create({first_name, last_name, password: hash, username});
+            const data = {id: response.id, first_name: response.first_name, last_name: response.last_name, username: response.username, account_created: response.account_created, account_updated: response.account_updated}
+            return data
+        }
     } catch(error) {
         return false
     }
