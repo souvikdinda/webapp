@@ -35,7 +35,8 @@ mysql -u root --password=$tempDBPass --connect-expired-password -e "ALTER USER '
 echo "================================="
 echo "Installing dependencies and launching application"
 echo "================================="
-unzip /tmp/webapp.zip -d ~/
+mkdir ~/webapp
+unzip /tmp/webapp.zip -d ~/webapp/
 touch /home/ec2-user/webapp/.env
 echo -e "PORT=8080\nDB_HOSTNAME=127.0.0.1\nDB_PORT=3306\nDB_USERNAME=souvik\nDB_PASSWORD=Sourish@1\nDB_DBNAME=csye6225" > /home/ec2-user/webapp/.env
 (cd /home/ec2-user/webapp/ && npm install)
