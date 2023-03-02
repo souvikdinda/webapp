@@ -30,5 +30,7 @@ echo "================================="
 echo "Setting up Systemd"
 echo "================================="
 sudo mv /tmp/nodeapp.service /etc/systemd/system/nodeapp.service
+sudo systemctl enable nodeapp.service
+sudo systemctl start nodeapp.service
 
 echo "~~~~~~~ ALL DONE ~~~~~~~~"
