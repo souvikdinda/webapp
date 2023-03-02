@@ -23,8 +23,6 @@ echo "Installing dependencies and launching application"
 echo "================================="
 mkdir ~/webapp
 unzip /tmp/webapp.zip -d ~/webapp/
-touch /home/ec2-user/webapp/.env
-echo -e "PORT=8080" > /home/ec2-user/webapp/.env
 (cd /home/ec2-user/webapp/ && npm install)
 
 # Setting up systemd
@@ -32,7 +30,5 @@ echo "================================="
 echo "Setting up Systemd"
 echo "================================="
 sudo mv /tmp/nodeapp.service /etc/systemd/system/nodeapp.service
-sudo systemctl enable nodeapp.service
-sudo systemctl start nodeapp.service
 
 echo "~~~~~~~ ALL DONE ~~~~~~~~"
