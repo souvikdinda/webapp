@@ -58,6 +58,7 @@ export const getProduct = async (req, res, next) => {
     
     if(!Number.isInteger(parseInt(req.params.productId))) {
         setError(400, res, next)
+        return 0
     }
     const productData = await productService.getProduct(req.params.productId);
     if(productData) {
@@ -125,6 +126,7 @@ export const createProduct = async (req, res, next) => {
 export const putProduct = async (req, res, next) => {
     if(!Number.isInteger(parseInt(req.params.productId))) {
         setError(400, res, next)
+        return 0
     }
 
     if(!req.get('Authorization')) { //If request header doesnt contain Authorization tag
@@ -184,6 +186,7 @@ export const putProduct = async (req, res, next) => {
 export const patchProduct = async (req, res, next) => {
     if(!Number.isInteger(parseInt(req.params.productId))) {
         setError(400, res, next)
+        return 0
     }
 
     if(!req.get('Authorization')) { //If request header doesnt contain Authorization tag
@@ -254,6 +257,7 @@ export const patchProduct = async (req, res, next) => {
 export const deleteProduct = async (req, res, next) => {
     if(!Number.isInteger(parseInt(req.params.productId))) {
         setError(400, res, next)
+        return 0
     }
 
     if(!req.get('Authorization')) { //If request header doesnt contain Authorization tag

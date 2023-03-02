@@ -3,23 +3,31 @@ import User from '../models/user-model.js'
 
 // Check if credentials match
 export const authenticateUser = async (username, password) => {
-    const auth = await User.findOne({where: {username}});
-    if(auth !== null) {
-        const hashPassword = auth.password;
-        return bcrypt.compareSync(password, hashPassword);
-    } else {
-        return false
+    try {
+        const auth = await User.findOne({where: {username}});
+        if(auth !== null) {
+            const hashPassword = auth.password;
+            return bcrypt.compareSync(password, hashPassword);
+        } else {
+            return false
+        }
+    } catch(error) {
+        return {error: error}
     }
 }
 
 // Check if user exists for given username
 export const authorizeAndGetUser = async (id, username) => {
-    const response = await User.findOne({where: {username}});
-    if(response.id === (+id)) {
-        const data = {id: response.id, first_name: response.first_name, last_name: response.last_name, username: response.username, account_created: response.account_created, account_updated: response.account_updated}
-        return data;
-    } else {
-        return false;
+    try {
+        const response = await User.findOne({where: {username}});
+        if(response.id === (+id)) {
+            const data = {id: response.id, first_name: response.first_name, last_name: response.last_name, username: response.username, account_created: response.account_created, account_updated: response.account_updated}
+            return data;
+        } else {
+            return false;
+        }
+    } catch(error) {
+        return {error: error}
     }
 }
 
@@ -42,7 +50,7 @@ export const saveUser = async (userData) => {
             return data
         }
     } catch(error) {
-        return false
+        return {error: error}
     }
 }
 
@@ -59,8 +67,7 @@ export const update =  async (id, data) => {
         const updatedUser = {id: response.id, first_name: response.first_name, last_name: response.last_name, username: response.username, account_created: response.account_created, account_updated: response.account_updated};
         return updatedUser;
     } catch(err) {
-        console.log(err);
-        return false;
+        return {error: err}
     }
 
 }

@@ -54,6 +54,10 @@ const setError = (errorCode, res, next) => {
 
 // Get method
 export const getById  = async (req, res, next) => {
+    if(!Number.isInteger(parseInt(req.params.userId))) {
+        setError(400, res, next)
+        return 0
+    }
     
     if(!req.get('Authorization')) { //If request header doesnt contain Authorization tag
         setError(401, res, next); // Request for sending request again with authorization tag
@@ -72,18 +76,22 @@ export const getById  = async (req, res, next) => {
 
         // Check if credentials match
         const authenticate = await userService.authenticateUser(username, password);
-        
-        if(authenticate) { //If matches then send details else send forbidden error
-            const id = req.params.userId;
-            const authorize = await userService.authorizeAndGetUser(id, username);
-            if(authorize) {
-                setSuccess(res, authorize);
-            } else {
-                setError(403, res, next);
-            }
-            
+
+        if(Object.keys(authenticate)[0] == 'error') {
+            setError(500, res, authenticate);
         } else {
-            setError(401, res, next);
+            if(authenticate) { //If matches then send details else send forbidden error
+                const id = req.params.userId;
+                const authorize = await userService.authorizeAndGetUser(id, username);
+                if(authorize) {
+                    setSuccess(res, authorize);
+                } else {
+                    setError(403, res, next);
+                }
+                
+            } else {
+                setError(401, res, next);
+            }
         }
 
     }
@@ -105,12 +113,17 @@ export const post = async (req, res, next) => {
             const regexp = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
             if(regexp.test(username)) {
                 const data = await userService.saveUser(req.body);
-                if(data) {
-                    res.status(201);
-                    res.json(data)
+                if(Object.keys(data)[0] == 'error') {
+                    setError(500, res, data);
                 } else {
-                    setError(400, res, next);
+                    if(data) {
+                        res.status(201);
+                        res.json(data)
+                    } else {
+                        setError(400, res, next);
+                    }
                 }
+
             } else {
                 setError(400, res, next);
             }
@@ -119,6 +132,10 @@ export const post = async (req, res, next) => {
 }
 
 export const update = async (req, res, next) => {
+    if(!Number.isInteger(parseInt(req.params.userId))) {
+        setError(400, res, next)
+        return 0
+    }
 
     // Check if crendentials has been passed or not
     if(!req.get('Authorization')) {
@@ -138,43 +155,49 @@ export const update = async (req, res, next) => {
         // Authenticate user to be able to update data
         const authenticate = await userService.authenticateUser(username, password);
 
-        if(authenticate) { //If matches then send details else send forbidden error
-            const id = req.params.userId;
-            const authorize = await userService.authorizeAndGetUser(id, username);
-            if(authorize) {
-                if(!Object.keys(req.body).length) { //IF no data provided to update
-                    setError(204, res,next);
-                } else if(Object.keys(req.body).length > 3) { //If more or less data is passed
-                    setError(400, res,next);
-                } else {
+        if(Object.keys(authenticate)[0] == 'error') {
+            setError(500, res, authenticate);
+        } else {
 
-                    let flag = true;
-                    for(let key in req.body) {
-                        if(key === 'first_name' || key==='last_name' || key==='password') {
-                            continue
-                        } else {
-                            flag = false;
-                        }
-                    }
-                    
-                    if(!flag) {
+            if(authenticate) { //If matches then send details else send forbidden error
+                const id = req.params.userId;
+                const authorize = await userService.authorizeAndGetUser(id, username);
+                if(authorize) {
+                    if(!Object.keys(req.body).length) { //IF no data provided to update
+                        setError(204, res,next);
+                    } else if(Object.keys(req.body).length > 3) { //If more or less data is passed
                         setError(400, res,next);
                     } else {
-                        const data = await userService.update(id, req.body);
-                        if(data) {
-                            setSuccess(res, data);
-                        } else {
-                            setError(503, res, next);
+    
+                        let flag = true;
+                        for(let key in req.body) {
+                            if(key === 'first_name' || key==='last_name' || key==='password') {
+                                continue
+                            } else {
+                                flag = false;
+                            }
                         }
+                        
+                        if(!flag) {
+                            setError(400, res,next);
+                        } else {
+                            const data = await userService.update(id, req.body);
+                            if(data) {
+                                setSuccess(res, data);
+                            } else {
+                                setError(503, res, next);
+                            }
+                        }
+    
                     }
-
+                } else {
+                    setError(403, res, next);
                 }
+                
             } else {
-                setError(403, res, next);
+                setError(401, res, next);
             }
-            
-        } else {
-            setError(401, res, next);
+
         }
 
     }

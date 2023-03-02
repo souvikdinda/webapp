@@ -4,6 +4,8 @@ import * as routes from './routes/index.js';
 import sequelize from './models/index.js';
 import User from './models/user-model.js';
 import Product from './models/product-model.js';
+import Image from './models/image-model.js';
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded());
