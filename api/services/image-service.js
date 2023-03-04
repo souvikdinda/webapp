@@ -4,7 +4,18 @@ import {v4 as uuid} from "uuid"
 import Product from '../models/product-model.js'
 import Image from '../models/image-model.js'
 dotenv.config()
-const s3 = new S3()
+
+const region = process.env.AWS_BUCKET_REGION
+const accessKeyId = process.env.AWS_ACCESS_KEY
+const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
+
+const s3 = new S3({
+    region,
+    credentials: {
+        accessKeyId,
+        secretAccessKey
+    }
+})
 
 export const getAllImages = async(productId) => {
     try {
