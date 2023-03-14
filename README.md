@@ -33,7 +33,7 @@
 
 **_Product Data_**
 **GET** http://localhost:8080/v1/product/{productId} 
-    *Note: No authentication is required*
+    *Note: No authentication is r equired*
 
 **POST** http://localhost:8080/v1/product 
     *name, description, sku(unique), manufacturer, quantity (more than 0 and should be number) is expected in payload*
