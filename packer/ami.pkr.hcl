@@ -36,7 +36,7 @@ source "amazon-ebs" "nodeapp-ami" {
   ami_regions = [
     "${var.aws_region}"
   ]
-  ami_users = ["${var.demo_account_id}"]
+  ami_users = ["${var.demo_account_id}", "${var.dev_account_id}"]
 
   aws_polling {
     delay_seconds = 120
