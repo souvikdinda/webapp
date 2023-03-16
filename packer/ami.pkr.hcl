@@ -10,12 +10,12 @@ variable "ssh_username" {
 
 variable "demo_account_id" {
   type    = string
-  default = "377562592179"
+  default = "085379417628"
 }
 
 variable "dev_account_id" {
   type    = string
-  default = "085379417628"
+  default = "377562592179"
 }
 
 packer {
@@ -36,7 +36,7 @@ source "amazon-ebs" "nodeapp-ami" {
   ami_regions = [
     "${var.aws_region}"
   ]
-  ami_users = ["${var.demo_account_id}", "${var.dev_account_id}"]
+  ami_users = ["${var.demo_account_id}"]
 
   aws_polling {
     delay_seconds = 120

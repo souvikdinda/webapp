@@ -279,7 +279,7 @@ export const deleteImage = async (req, res, next) => {
                     if(images) {
                         const deletedImage = await imageService.deleteImage(imageId);
                         if (deletedImage) {
-                            setSuccess(res, deletedImage)
+                            setError(204, res,next);
                         } else {
                             setError(500, res,next)
                         }
