@@ -2,6 +2,11 @@ import multer from 'multer';
 import * as imageService from '../services/image-service.js'
 import * as userService from '../services/user-service.js';
 import * as productService from '../services/product-service.js';
+import logger from '../logger/index.js';
+import SDC from 'statsd-client';
+import dotenv from 'dotenv';
+dotenv.config();
+const sdc = new SDC({host: process.env.METRICS_HOSTNAME, port: process.env.METRICS_PORT});
 
 const storage = multer.memoryStorage();
 
@@ -66,6 +71,8 @@ const setError = (errorCode, res, next) => {
 }
 
 export const getAllImages = async (req, res, next) => {
+    sdc.increment('endpoint.getAllImages');
+    logger.info(`/GET/ImageController/Initiated`)
     if(!Number.isInteger(parseInt(req.params.productId))) {
         setError(400, res, next)
         return 0
@@ -101,6 +108,7 @@ export const getAllImages = async (req, res, next) => {
                         setError(404, res,next)
                         return
                     }
+                    logger.info(`/GET/ImageController/Success`)
                     setSuccess(res,images)
                 } else {
                     setError(403, res, next);
@@ -116,6 +124,8 @@ export const getAllImages = async (req, res, next) => {
 }
 
 export const saveImage = async (req, res, next) => {
+    sdc.increment('endpoint.uploadImage');
+    logger.info(`/POST/ImageController/Initiated`)
     if(!Number.isInteger(parseInt(req.params.productId))) {
         setError(400, res, next)
         return 0
@@ -161,9 +171,11 @@ export const saveImage = async (req, res, next) => {
 
                             const result = await imageService.uploadImageS3(file, productId);
                             if(!result) {
+                                logger.warn(`/POST/ImageController/Failed`)
                                 setError(500, res, 'Seems like something went wrong')
                                 return
                             }
+                            logger.info(`/POST/ImageController/Success`)
                             res.status(201)
                             res.json(result)
                         }
@@ -173,12 +185,6 @@ export const saveImage = async (req, res, next) => {
                         }
                     })
 
-                    if(images) {
-                        setSuccess(res, images);
-                    } else {
-                        setError(404, res,next)
-                    }
-                    
                 } else {
                     setError(403, res, next);
                 }
@@ -192,6 +198,8 @@ export const saveImage = async (req, res, next) => {
 }
 
 export const getImage = async (req, res, next) => {
+    sdc.increment('endpoint.getImage');
+    logger.info(`/GET/ImageController/Initiated/ImageID ${req.params.imageId}`);
     if((!Number.isInteger(parseInt(req.params.productId))) || (!Number.isInteger(parseInt(req.params.imageId)))) {
         setError(400, res, next)
         return 0
@@ -225,6 +233,7 @@ export const getImage = async (req, res, next) => {
                     const imageId = req.params.imageId;
                     const images = await imageService.getImage(imageId, productId);
                     if(images) {
+                        logger.info(`/GET/ImageController/Success/ImageId ${req.params.imageId}`);
                         setSuccess(res, images);
                     } else {
                         setError(404, res,next)
@@ -244,6 +253,8 @@ export const getImage = async (req, res, next) => {
 }
 
 export const deleteImage = async (req, res, next) => {
+    sdc.increment('endpoint.deleteImage');
+    logger.info(`/DELETE/ImageController/Initiated/ImageId ${req.params.imageId}`);
     if((!Number.isInteger(parseInt(req.params.productId))) || (!Number.isInteger(parseInt(req.params.imageId)))) {
         setError(400, res, next)
         return 0
@@ -279,6 +290,7 @@ export const deleteImage = async (req, res, next) => {
                     if(images) {
                         const deletedImage = await imageService.deleteImage(imageId);
                         if (deletedImage) {
+                            logger.info(`/DELETE/ImageController/Success/ImageId ${req.params.imageId}`);
                             setError(204, res,next);
                         } else {
                             setError(500, res,next)

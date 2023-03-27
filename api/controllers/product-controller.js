@@ -1,5 +1,10 @@
 import * as productService from '../services/product-service.js';
 import * as userService from '../services/user-service.js';
+import logger from '../logger/index.js'
+import SDC from 'statsd-client';
+import dotenv from 'dotenv';
+dotenv.config();
+const sdc = new SDC({host: process.env.METRICS_HOSTNAME, port: process.env.METRICS_PORT});
 
 // Standard success message
 const setSuccess = (res, obj) => {
@@ -13,6 +18,7 @@ const setError = (errorCode, res, next) => {
         case 401:
             var err = 'Not Authenticated';
             res.status(401).set('WWW-Authenticate','Basic');// Request to send Authentication tag with Basic token
+            logger.info(`/ProductController/401/${err}`)
             next(err);
             break;
         
@@ -24,17 +30,20 @@ const setError = (errorCode, res, next) => {
         case 400:
             var err = 'Bad Request';
             res.status(400);
+            logger.info(`/ProductController/400/${err}`)
             next(err);
             break;
 
         case 403:
             var err = 'Authentication Failed';
+            logger.info(`/ProductController/403/${err}`)
             res.status(403);
             next(err);
             break;
         
         case 404:
             var err = 'Product doesnot exist';
+            logger.info(`/ProductController/404/${err}`)
             res.status(404);
             next(err);
             break;
@@ -46,6 +55,7 @@ const setError = (errorCode, res, next) => {
 
         case 503:
             var err = "Request couldn't be completed temporarily"
+            logger.info(`/ProductController/503/${err}`)
             res.status(503);
             res.json(next);
             break;
@@ -55,13 +65,15 @@ const setError = (errorCode, res, next) => {
 
 // Product details can be fetched by anyone with valid product id
 export const getProduct = async (req, res, next) => {
-    
+    sdc.increment('endpoint.getProduct');
+    logger.info(`/GET/ProductController/Initiated`);
     if(!Number.isInteger(parseInt(req.params.productId))) {
         setError(400, res, next)
         return 0
     }
     const productData = await productService.getProduct(req.params.productId);
     if(productData) {
+        logger.info(`/GET/ProductController/Success/ProductId ${req.params.productId}`);
         setSuccess(res, productData)
     } else {
         setError(404, res, next);
@@ -72,7 +84,8 @@ export const getProduct = async (req, res, next) => {
 
 // Product can be created only by authenticated user
 export const createProduct = async (req, res, next) => {
-
+    sdc.increment('endpoint.postProduct');
+    logger.info(`/POST/ProductController/Initiated`);
     if(!req.get('Authorization')) { //If request header doesnt contain Authorization tag
         setError(401, res, next); // Request for sending request again with authorization tag
     } else {
@@ -108,6 +121,7 @@ export const createProduct = async (req, res, next) => {
                     if(!data) {
                         setError(400, res, next);
                     } else {
+                        logger.info(`/POST/ProductController/Success`);
                         res.status(201);
                         res.json(data)
                     }
@@ -124,6 +138,8 @@ export const createProduct = async (req, res, next) => {
 
 // Product details can be updated only by authenticated user
 export const putProduct = async (req, res, next) => {
+    sdc.increment('endpoint.putProduct');
+    logger.info(`/PUT/ProductController/Initiated`)
     if(!Number.isInteger(parseInt(req.params.productId))) {
         setError(400, res, next)
         return 0
@@ -165,6 +181,7 @@ export const putProduct = async (req, res, next) => {
                         if(!data) {
                             setError(400, res, next);
                         } else {
+                            logger.info(`/PUT/ProductController/Success`);
                             setSuccess(res, data);
                         }
 
@@ -184,6 +201,8 @@ export const putProduct = async (req, res, next) => {
 
 // Patch can be used to update product details by authenticated user
 export const patchProduct = async (req, res, next) => {
+    sdc.increment('endpoint.patchProduct');
+    logger.info(`/PATCH/ProductController/Initiated`)
     if(!Number.isInteger(parseInt(req.params.productId))) {
         setError(400, res, next)
         return 0
@@ -239,6 +258,7 @@ export const patchProduct = async (req, res, next) => {
                         if(!data) {
                             setError(400, res, next);
                         } else {
+                            logger.info(`/PATCH/ProductController/Success`);
                             setSuccess(res, data);
                         } 
                     }
@@ -255,6 +275,8 @@ export const patchProduct = async (req, res, next) => {
 }
 
 export const deleteProduct = async (req, res, next) => {
+    sdc.increment('endpoint.deleteProduct');
+    logger.info(`/DELETE/ProductController/Initiated`)
     if(!Number.isInteger(parseInt(req.params.productId))) {
         setError(400, res, next)
         return 0
@@ -292,6 +314,7 @@ export const deleteProduct = async (req, res, next) => {
                     if(!deletedProduct) {
                         setError(503, res, next)
                     } else {
+                        logger.info(`/DELETE/ProductController/Success`)
                         setSuccess(res, deletedProduct)
                     }
 

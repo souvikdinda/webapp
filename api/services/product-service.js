@@ -1,6 +1,7 @@
 import e from 'cors';
 import Product from '../models/product-model.js';
 import User from '../models/user-model.js';
+import logger from '../logger/index.js';
 
 // Save product in DB for given user
 export const saveProduct = async (username, data) => {
@@ -14,6 +15,7 @@ export const saveProduct = async (username, data) => {
             return newProduct;
         }
     } catch(error) {
+        logger.warn(`ProductService ${error}`)
         return false;
     }
 
@@ -25,6 +27,7 @@ export const getProduct = async (id) => {
         const product = await Product.findOne({where: {id}})
         return product;
     } catch(err) {
+        logger.warn(`ProductService ${err}`)
         return false
     }
 }
@@ -40,6 +43,7 @@ export const authorizeToUpdate = async (username, productId) => {
             return false;
         }
     } catch(err) {
+        logger.warn(`ProductService ${err}`)
         return false
     }
 }
@@ -53,6 +57,7 @@ export const updateProduct = async (username, productId, data) => {
         const updatedProduct = await product.update(data);
         return updatedProduct
     } catch(err) {
+        logger.warn(`ProductService ${err}`)
         return false
     }
 }
@@ -67,6 +72,7 @@ export const deleteProduct = async (username, productId) => {
         const deletedProduct = await product.destroy();
         return deletedProduct;
     } catch(err) {
+        logger.warn(`ProductService ${err}`)
         return false
     }
 }

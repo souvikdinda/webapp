@@ -5,6 +5,7 @@ import sequelize from './models/index.js';
 import User from './models/user-model.js';
 import Product from './models/product-model.js';
 import Image from './models/image-model.js';
+import logger from './logger/index.js';
 
 const app = express();
 app.use(express.json());
@@ -16,9 +17,9 @@ routes.healthCheck(app);
 routes.productData(app);
 
 sequelize.sync({alter: false, force: false}).then((data) => {
-    console.log("Tables updated on database")
+    logger.info("Database connection established")
 }).catch((err) => {
-    console.log(err)
+    logger.error(err)
 })
 
 export default app;

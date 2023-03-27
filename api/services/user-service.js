@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import User from '../models/user-model.js'
+import logger from '../logger/index.js'
 
 // Check if credentials match
 export const authenticateUser = async (username, password) => {
@@ -12,6 +13,7 @@ export const authenticateUser = async (username, password) => {
             return false
         }
     } catch(error) {
+        logger.error(`UserService ${error}`)
         return {error: error}
     }
 }
@@ -27,6 +29,7 @@ export const authorizeAndGetUser = async (id, username) => {
             return false;
         }
     } catch(error) {
+        logger.error(`UserService ${error}`)
         return {error: error}
     }
 }
@@ -50,6 +53,7 @@ export const saveUser = async (userData) => {
             return data
         }
     } catch(error) {
+        logger.error(`UserService ${error}`)
         return {error: error}
     }
 }
@@ -57,7 +61,7 @@ export const saveUser = async (userData) => {
 // Update data for user
 export const update =  async (id, data) => {
     try {
-        if(data.password !== undefined || data.password !== "") {
+        if(!(data.password === undefined || data.password === "")) {
             const {password} = data;
             const hash = bcrypt.hashSync(password, 10);
             data.password = hash;
@@ -67,6 +71,7 @@ export const update =  async (id, data) => {
         const updatedUser = {id: response.id, first_name: response.first_name, last_name: response.last_name, username: response.username, account_created: response.account_created, account_updated: response.account_updated};
         return updatedUser;
     } catch(err) {
+        logger.error(`UserService ${err}`)
         return {error: err}
     }
 

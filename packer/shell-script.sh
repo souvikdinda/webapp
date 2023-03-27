@@ -17,6 +17,22 @@ echo "================================="
 curl -sL https://rpm.nodesource.com/setup_16.x | sudo -E bash -
 sudo yum install -y nodejs
 
+# Install cloudwatch agent
+echo "================================="
+echo "Installing cloudwatch"
+echo "================================="
+sudo yum install amazon-cloudwatch-agent -y 
+
+# Start cloudwatch agent
+echo "================================="
+echo "Configuring cloudwatch"
+echo "================================="
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+-a fetch-config \
+-m ec2 \
+-c file:/home/ec2-user/webapp/api/cloudwatch/config.json \
+-s
+
 # Installing and launching application
 echo "================================="
 echo "Installing dependencies and launching application"

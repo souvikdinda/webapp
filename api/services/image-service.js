@@ -3,6 +3,7 @@ import dotenv from "dotenv"
 import {v4 as uuid} from "uuid"
 import Product from '../models/product-model.js'
 import Image from '../models/image-model.js'
+import logger from '../logger/index.js'
 dotenv.config()
 
 const region = process.env.AWS_BUCKET_REGION
@@ -14,6 +15,7 @@ export const getAllImages = async(productId) => {
         const result = await Image.findAll({where: {product_id: productId}})
         return result
     } catch(err) {
+        logger.warn(`ImageService ${err}`)
         return false
     }
 }
@@ -23,6 +25,7 @@ export const getImage = async(imageId, productId) => {
         const result = await Image.findOne({where: {image_id: imageId, product_id: productId}})
         return result
     } catch(err) {
+        logger.warn(`ImageService ${err}`)
         return false
     }
 }
@@ -43,6 +46,7 @@ export const uploadImageS3 = async(file, productId) => {
             return newImage
         }
     } catch(error) {
+        logger.warn(`ImageService ${err}`)
         return false
     }
 }
@@ -62,6 +66,7 @@ export const deleteImage = async (imageId) => {
             return false
         }
     } catch(error) {
+        logger.warn(`ImageService ${err}`)
         return false
     }
 }

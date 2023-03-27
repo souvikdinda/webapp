@@ -1,4 +1,9 @@
 import * as userService from '../services/user-service.js';
+import logger from '../logger/index.js'
+import SDC from 'statsd-client';
+import dotenv from 'dotenv';
+dotenv.config();
+const sdc = new SDC({host: process.env.METRICS_HOSTNAME, port: process.env.METRICS_PORT});
 
 // Standard success message
 const setSuccess = (res, obj) => {
@@ -11,6 +16,7 @@ const setError = (errorCode, res, next) => {
     switch(errorCode) {
         case 401:
             var err = 'Not Authenticated';
+            logger.info(`/UserController/401/${err}`)
             res.status(401).set('WWW-Authenticate','Basic');// Request to send Authentication tag with Basic token
             next(err);
             break;
@@ -22,18 +28,21 @@ const setError = (errorCode, res, next) => {
         
         case 400:
             var err = 'Bad Request';
+            logger.info(`/UserController/400/${err}`)
             res.status(400);
             next(err);
             break;
 
         case 403:
             var err = 'Authentication Failed';
+            logger.info(`/UserController/403/${err}`)
             res.status(403);
             next(err);
             break;
         
         case 404:
             var err = 'User ID doesnot exist';
+            logger.info(`/UserController/404/${err}`)
             res.status(404);
             next(err);
             break;
@@ -45,8 +54,9 @@ const setError = (errorCode, res, next) => {
 
         case 503:
             var err = "Request couldn't be completed temporarily"
+            logger.info(`/UserController/503/${err}`)
             res.status(503);
-            res.json(next);
+            res.json(err);
             break;
 
     }
@@ -54,6 +64,8 @@ const setError = (errorCode, res, next) => {
 
 // Get method
 export const getById  = async (req, res, next) => {
+    sdc.increment('endpoint.getUser');
+    logger.info(`/GET/UserController/Initiated`)
     if(!Number.isInteger(parseInt(req.params.userId))) {
         setError(400, res, next)
         return 0
@@ -78,6 +90,7 @@ export const getById  = async (req, res, next) => {
         const authenticate = await userService.authenticateUser(username, password);
 
         if(Object.keys(authenticate)[0] == 'error') {
+            logger.error(`/GET/UserController/${authenticate}/user ${username}`)
             setError(500, res, authenticate);
         } else {
             if(authenticate) { //If matches then send details else send forbidden error
@@ -85,6 +98,7 @@ export const getById  = async (req, res, next) => {
                 const authorize = await userService.authorizeAndGetUser(id, username);
                 if(authorize) {
                     setSuccess(res, authorize);
+                    logger.info(`/GET/UserController/Success/userID ${id}`)
                 } else {
                     setError(403, res, next);
                 }
@@ -100,6 +114,8 @@ export const getById  = async (req, res, next) => {
 
 
 export const post = async (req, res, next) => {
+    sdc.increment('endpoint.postUser');
+    logger.info(`/POST/UserController/Initiated`)
     if(!Object.keys(req.body).length) {
         setError(204, res,next);
     } else if(Object.keys(req.body).length != 4) { //If more or less data is passed
@@ -114,9 +130,11 @@ export const post = async (req, res, next) => {
             if(regexp.test(username)) {
                 const data = await userService.saveUser(req.body);
                 if(Object.keys(data)[0] == 'error') {
+                    logger.error(`/POST/UserController/${data}`)
                     setError(500, res, data);
                 } else {
                     if(data) {
+                        logger.info(`/POST/UserController/Success`)
                         res.status(201);
                         res.json(data)
                     } else {
@@ -132,6 +150,8 @@ export const post = async (req, res, next) => {
 }
 
 export const update = async (req, res, next) => {
+    sdc.increment('endpoint.updateUser');
+    logger.info(`/UPDATE/UserController/Initiated`)
     if(!Number.isInteger(parseInt(req.params.userId))) {
         setError(400, res, next)
         return 0
@@ -156,6 +176,7 @@ export const update = async (req, res, next) => {
         const authenticate = await userService.authenticateUser(username, password);
 
         if(Object.keys(authenticate)[0] == 'error') {
+            logger.info(`/UPDATE/UserController/${authenticate}/user ${username}`)
             setError(500, res, authenticate);
         } else {
 
@@ -182,10 +203,12 @@ export const update = async (req, res, next) => {
                             setError(400, res,next);
                         } else {
                             const data = await userService.update(id, req.body);
-                            if(data) {
-                                setSuccess(res, data);
-                            } else {
+                            if(Object.keys(data)[0] == 'error') {
+                                logger.error(`/UPDATE/UserController/Failed with error 503/userId ${id}`)
                                 setError(503, res, next);
+                            } else {
+                                logger.info(`/UPDATE/UserController/Success/userId ${id}`)
+                                setSuccess(res, data);
                             }
                         }
     
