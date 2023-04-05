@@ -48,7 +48,7 @@
     *Note: Username, Password is required for authentication*
 
 **DELETE** http://localhost:8080/v1/product/{productId}
-    *To delete existing product*
+    *To delete existing Product*
     *Note: Username, Password is required for authentication*
 
 This project is part of coursework for **CSYE 6225**
