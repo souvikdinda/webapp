@@ -55,6 +55,7 @@ _This application can be hosted on AWS **EC2**, MySQL on **RDS**, **S3** bucket 
 
 **DELETE** https://{domainName}/v1/product/{productId}
     *To delete existing product*
+
     *Note: Username, Password is required for authentication*
 
 **_Image Service_**
