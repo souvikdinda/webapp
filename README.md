@@ -1,12 +1,15 @@
-# RESTful service for User Details
+# WEBAPP project
+**_This project contains RESTful Web Application that allows Users to create multiple products and each product can have multiple images_**
 
-> Technologies Used: NodeJS, ExpressJS
+## Web Application:
+> Technologies Used: NodeJS, ExpressJS, Sequelize ORM
 > Database: MySQL
-> Libraries Used: Bcrypt, dotenv, mysql2, chai, mocha, sequelize
+> Libraries Used: Bcrypt (password encryption), dotenv, mysql2, chai & mocha (testing), aws-sdk, multer (middleware for uploading files), statsd (monitoring), winston (logging)
+
+_This application can be hosted on AWS **EC2**, MySQL on **RDS**, **S3** bucket to store images, **Cloudwatch** to view monitoring metrics and application logs
 
 ### Prerequisite to run the application:
 *NodeJS*: v16.16.0
-*MySQL*: v8.0.31
 
 ### Steps to run application locally:
 1. Clone from the repository to local machine
@@ -20,36 +23,64 @@
 
 ### Valid Endpoints:
 
+**_Health Check_**
+**GET** https://{domainName}/healthz
+
 **_User Data_**
-**GET** http://localhost:8080/v1/user/{userId} 
+**GET** https://{domainName}/v1/user/{userId} 
     *Note: Username, Password is required for authentication*
 
-**POST** http://localhost:8080/v1/user 
+**POST** https://{domainName}/v1/user 
     *first_name, last_name, password, username is expected in payload*
 
-**PUT** http://localhost:8080/v1/user/{userId}
+**PUT** https://{domainName}/v1/user/{userId}
     *first_name, last_name, password can be updated*
 
 
 **_Product Data_**
-**GET** http://localhost:8080/v1/product/{productId} 
+**GET** https://{domainName}/v1/product/{productId} 
     *Note: No authentication is r equired*
 
-**POST** http://localhost:8080/v1/product 
+**POST** https://{domainName}/v1/product 
     *name, description, sku(unique), manufacturer, quantity (more than 0 and should be number) is expected in payload*
     *Note: Username, Password is required for authentication*
 
-**PUT** http://localhost:8080/v1/product/{productId}
+**PUT** https://{domainName}/v1/product/{productId}
     *name, description, sku(unique), manufacturer, quantity (more than 0 and should be number) is expected in payload to update existing details*
     *Note: Username, Password is required for authentication*
 
-**PATCH** http://localhost:8080/v1/product/{productId}
+**PATCH** https://{domainName}/v1/product/{productId}
     *name, description, sku(unique), manufacturer, quantity (more than 0 and should be number) can be updated. Updating all fields is not mandatory*
     *Note: Username, Password is required for authentication*
 
-**DELETE** http://localhost:8080/v1/product/{productId}
-    *To delete existing Product*
+**DELETE** https://{domainName}/v1/product/{productId}
+    *To delete existing product*
+
     *Note: Username, Password is required for authentication*
+
+**_Image Service_**
+**GET** https://{domainName}/v1/product/{productId}/image
+    *To get all images of a product*
+    *Note: Username, Password is required for authentication*
+
+**GET** https://{domainName}/v1/product/{productId}/image/{imageId}
+    *To get an image of a product*
+    *Note: Username, Password is required for authentication*
+
+**POST** https://{domainName}/v1/product/{productId}/image
+    *upload an image with key 'image' which will then be uploaded to AWS S3 bucket*
+    *Note: Username, Password is required for authentication*
+
+**DELETE** https://{domainName}/v1/product/{productId}/image/{imageId}
+    *To delete existing image of a product*
+    *Note: Username, Password is required for authentication*
+
+
+## Continuous Integration
+
+_**Github Actions** has been used for CI pipeline that verifies the code being merged (by running unit and integration tests) and creates image of the new code using **Packer** which is then made available as **AMI** in AWS across DEV and PROD accounts_
+
+
 
 This project is part of coursework for **CSYE 6225**
 
