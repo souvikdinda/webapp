@@ -45,21 +45,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_DEMO_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
         
-      - name: Get AMI ID
-        id: get-ami-id
+      - name: Update Autoscaling group
+        id: update-asg
         run: |
           ami_id=$(aws ec2 describe-images --owners 377562592179 --filters "Name=name, Values=NodeApp_*" --output text --query 'sort_by(Images, &CreationDate)[-1].ImageId')
           lt_name=$(aws ec2 describe-launch-templates --query 'LaunchTemplates[?starts_with(LaunchTemplateName, `asg_launch_config`)].LaunchTemplateName' --output text)
-          echo "ami_id: ${ami_id}"
-          echo "lt_name: ${lt_name}"
-
-      - name: Get latest Launch Template
-        id: get-launch-template
-        run: |
-          ami_id=${{ steps.get-ami-id.outputs.ami_id }}
-          lt_name=$(aws ec2 describe-launch-templates --query 'LaunchTemplates[?starts_with(LaunchTemplateName, `asg_launch_config`)].LaunchTemplateName' --output text)
-          lt_data=$(aws ec2 describe-launch-templates --launch-template-names "$lt_name" --output json)
-          lt_data=$(echo "$lt_data" | jq '.[].ImageId="'$ami_id'"')
-          aws ec2 create-launch-template-version --launch-template-name "$lt_name" --source-version 1 --launch-template-data "$lt_data"
+          aws ec2 create-launch-template-version --launch-template-name "$lt_name" --source-version 1 --launch-template-data "{\"ImageId\":\"$ami_id\"}"
+          lt_version=$(aws ec2 describe-launch-template-versions --launch-template-name $lt_name --query 'reverse(sort_by(LaunchTemplateVersions, &CreateTime)[].VersionNumber) | [0]' --output text)
+          aws autoscaling update-auto-scaling-group --auto-scaling-group-name autoscaling_group --launch-template LaunchTemplateName=$lt_name,Version=$lt_version
           aws autoscaling start-instance-refresh --auto-scaling-group-name autoscaling_group --preferences MinHealthyPercentage=90,InstanceWarmup=60 --strategy Rolling
 
