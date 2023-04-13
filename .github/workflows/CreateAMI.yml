@@ -46,17 +46,15 @@ jobs:
         
       - name: Get AMI ID
         id: get-ami-id
-        run: ami_id=$(aws ec2 describe-images --owners 377562592179 --filters "Name=name, Values=NodeApp_*" --output text --query 'sort_by(Images, &CreationDate)[-1].ImageId')
-
-      - name: Check if Launch Template Exits
-        id: check_lt
         run: |
+          ami_id=$(aws ec2 describe-images --owners 377562592179 --filters "Name=name, Values=NodeApp_*" --output text --query 'sort_by(Images, &CreationDate)[-1].ImageId')
           lt_name=$(aws ec2 describe-launch-templates --query 'LaunchTemplates[?starts_with(LaunchTemplateName, `asg_launch_config`)].LaunchTemplateName' --output text)
-          echo ::set-output name=exists::$(test -n "$lt_name" && echo "true" || echo "false")
+          echo "ami_id: ${ami_id}"
+          echo "lt_name: ${lt_name}"
 
       - name: Get latest Launch Template
         id: get-launch-template
-        if: steps.check_lt.outputs.exists == 'true'
+        if: steps.get-ami-id.outputs.lt_name
         run: |
           ami_id=${{ steps.get-ami-id.outputs.ami_id }}
           lt_name=$(aws ec2 describe-launch-templates --query 'LaunchTemplates[?starts_with(LaunchTemplateName, `asg_launch_config`)].LaunchTemplateName' --output text)
