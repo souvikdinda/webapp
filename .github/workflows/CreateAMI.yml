@@ -55,7 +55,6 @@ jobs:
 
       - name: Get latest Launch Template
         id: get-launch-template
-        if: steps.get-ami-id.outputs.lt_name != null
         run: |
           ami_id=${{ steps.get-ami-id.outputs.ami_id }}
           lt_name=$(aws ec2 describe-launch-templates --query 'LaunchTemplates[?starts_with(LaunchTemplateName, `asg_launch_config`)].LaunchTemplateName' --output text)
