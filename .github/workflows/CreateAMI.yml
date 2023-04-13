@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
-  job1:
+  build:
     name: packer-runner
 
     runs-on: ubuntu-latest
@@ -37,11 +37,6 @@ jobs:
       - name: Packer build
         run: packer build ./packer/ami.pkr.hcl
 
-  job2:
-    name: new-launch-template
-    runs-on: ubuntu-latest
-
-    steps:
 
       - name: Configure AWS Demo Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -60,7 +55,7 @@ jobs:
 
       - name: Get latest Launch Template
         id: get-launch-template
-        if: steps.get-ami-id.outputs.lt_name
+        if: steps.get-ami-id.outputs.lt_name != null
         run: |
           ami_id=${{ steps.get-ami-id.outputs.ami_id }}
           lt_name=$(aws ec2 describe-launch-templates --query 'LaunchTemplates[?starts_with(LaunchTemplateName, `asg_launch_config`)].LaunchTemplateName' --output text)
